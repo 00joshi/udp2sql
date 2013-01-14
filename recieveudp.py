@@ -2,6 +2,9 @@
 
 import socket
 import datetime
+import time
+import thread
+import Queue
 import sqlite3 as lite
 
 # listening IP and Port
@@ -19,10 +22,33 @@ def sqlog(fldTime, args):
 	con.close
     return
 
-sock = socket.socket(socket.AF_INET, # Internet
-                     socket.SOCK_DGRAM) # UDP
-sock.bind((UDP_IP, UDP_PORT))
+def helloworld():
+	print "Hello World"
+	
 
-while True:
-	data, addr = sock.recvfrom(1024) # buffer size is 1024 bytes
-	sqlog(str(datetime.datetime.now()), data.split(" "))
+def networklisten():
+	sock = socket.socket(socket.AF_INET, # Internet
+                     socket.SOCK_DGRAM) # UDP
+	sock.bind((UDP_IP, UDP_PORT))
+	while True:
+		data, addr = sock.recvfrom(1024) # buffer size is 1024 bytes
+		q.put(data)
+	pass
+	return
+
+# Defining a Queue object
+q = Queue.Queue(0)
+
+# try:
+thread.start_new_thread(networklisten, ())
+# except:
+# 	print "Error: unable to start thread"
+
+while 1:
+    while q.empty() != 1:
+	item = q.get()
+	sqlog(str(datetime.datetime.now()), item.split(" "))
+	q.task_done()
+        pass
+    time.sleep(15) 
+    pass
