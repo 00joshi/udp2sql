@@ -1,15 +1,21 @@
 #!/usr/bin/env python
 # Recieve UDP Data and write to SQLite database - soon also serial data
 
-import os
-import sys
+import os, sys
 import socket
 import serial
 import datetime
 import time
-import thread
-import Queue
+import thread, Queue
 import sqlite3 as lite
+
+# Configuration Here
+## listening IP and Port
+UDP_IP = "127.0.0.1"
+UDP_PORT = 8888
+## SERIAL
+SERIAL_PORT = "/dev/ttyUSB4"
+BAUDRATE = "57600"
 
 # Pid File erzeugen um den Prozess wieder zu finden
 if os.access(os.path.expanduser("~/.lockfile.recieve.lock"), os.F_OK):
@@ -32,10 +38,8 @@ else:
 	pidfile = open(os.path.expanduser("~/.lockfile.recieve.lock"), "w")
 	pidfile.write("%s" % os.getpid())
 	pidfile.close
-# listening IP and Port
-UDP_IP = "127.0.0.1"
-UDP_PORT = 8888
 
+# function for putting the data into the database
 def sqlog(args):
     con = lite.connect('logdata.db')
     with con:
@@ -47,7 +51,7 @@ def sqlog(args):
 	con.close
     return
 	
-
+# listening for UDP Packets on the network interface
 def networklisten():
 	sock = socket.socket(socket.AF_INET, # Internet
                      socket.SOCK_DGRAM) # UDP
@@ -60,7 +64,7 @@ def networklisten():
 
 # listening on serial
 def seriallisten():
-	ser = serial.Serial('/dev/ttyUSB4',57600,timeout=5)
+	ser = serial.Serial(SERIAL_PORT,BAUDRATE,timeout=5)
 	ser.open()
 	while True:
 		try:
@@ -81,11 +85,17 @@ def seriallisten():
 # Defining a Queue object
 q = Queue.Queue(0)
 
+#NETWORKING THREAD
 try:
-	thread.start_new_thread(networklisten, ())
+        thread.start_new_thread(networklisten, ())
+except:
+        print "Error: unable to start networking thread"
+
+# SERIAL THREAD
+try:
 	thread.start_new_thread(seriallisten, ())
 except:
-	print "Error: unable to start thread"
+	print "Error: unable to start serial thread"
 
 while 1:
     while q.empty() != 1:
