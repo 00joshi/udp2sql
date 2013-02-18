@@ -1,8 +1,10 @@
+#!/usr/bin/env python
+
 # This Testscript sends UDP packages to test the other script
 import socket
 UDP_IP = "127.0.0.1" # The Destination - for now localhost
 UDP_PORT = 8888 #port we are running on
-MESSAGE = "Machine01 TEMP -3" #the testdata
+MESSAGE = "TestValue Radiation 9001" #the testdata
 
 print "UDP target IP:", UDP_IP
 print "UDP target port:", UDP_PORT
